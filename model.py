@@ -2,6 +2,7 @@ import numpy as np
 #from datetime import timedelta # https://docs.python.org/3/library/datetime.html
 from pprint import pprint
 from collections import OrderedDict
+
 class SEIR:
     
     S0 = 67e6 # size of french population
