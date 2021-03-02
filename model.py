@@ -65,7 +65,7 @@ class SEIR:
     
     def step(self, dt):
         self.t += dt
-        self.y += dt*self.derivative(self.y, self.t)
+        self.y += dt*self.derivative(self.y, self.t) # Euler explicit
         
     def derivative(self, y, t):
         der = np.zeros((11))
