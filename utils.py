@@ -1,7 +1,8 @@
 import numpy as np
-from datetime import timedelta # https://docs.python.org/3/library/datetime.html
+from datetime import timedelta, datetime # https://docs.python.org/3/library/datetime.html
 
-
+delta_time = timedelta(days = 1)
+init_date = datetime(year = 2020, month = 1, day = 25) # min start epidemy
 # -------------------------------- X - Input params ------------------------- #
 nb_inputs = 15
 idx_to_keys = {
@@ -37,9 +38,9 @@ input_params = {
     'N' : [4*7+3, 7*7+3],
     't0' : [0, 4*7+3],
     'Im0' : [1., 100.],
-    'lambda1' : [10e-4, 10e-3]
+    'lambda1' : [1e-4, 1e-3]
 }
-
+    
 def draw_input_params(seed = None):
     np.random.seed(seed)
     pa = np.random.uniform(low = 0.4, high = 0.9)
@@ -59,7 +60,7 @@ def draw_input_params(seed = None):
     t0 = np.random.randint(tmin, tmax+1) # in days
     
     Im0 = np.random.uniform(1,100)
-    lambda1 = np.random.uniform(10e-4,10e-3)
+    lambda1 = np.random.uniform(1e-4,1e-3)
     
     return [pa, pIH, pIU, pHD, pHU, pUD, NI, NH, NU, R0, mu, N, t0, Im0, lambda1]
 
@@ -68,8 +69,8 @@ def convert(arr):
     for k in range(arr.shape[0]):
         p = input_params[idx_to_keys[k]]
         arr[k] = p[0]+(p[1]-p[0])*arr[k]
-        if(type(p[0]) == type(1) and type(p[1]) == type(1)):
-            arr[k] = int(arr[k])
+        #if(type(p[0]) == type(1) and type(p[1]) == type(1)):
+        #    arr[k] = int(arr[k])
     return arr
 
 def vectorize(delta):
@@ -78,7 +79,7 @@ def vectorize(delta):
     delta_vect = np.zeros((15,15))
     for k in range(15):
         p = input_params[idx_to_keys[k]]
-        delta_vect[k,k] = delta*(p[1]-p[0])
+        delta_vect[k,k] = delta*0.5*(p[1]+p[0]) # taking the min one
         #if(type(p[0]) == type(1) and type(p[1]) == type(1)):
         #    delta_vect[k] = int(delta_vect[k])
     return delta_vect

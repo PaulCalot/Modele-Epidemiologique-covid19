@@ -3,27 +3,12 @@ import numpy as np
 from pprint import pprint
 from collections import OrderedDict
 
+from utils import delta_time, key_to_idx, ykeys
 class SEIR:
     
     S0 = 67e6 # size of french population
     
-    keys = {
-        'pa' : 0,
-        'pIH' : 1,
-        'pIU' : 2,
-        'pHD' : 3,
-        'pHU' : 4,
-        'pUD' : 5,
-        'NI' : 6,
-        'NH' : 7,
-        'NU' : 8,
-        'R0' : 9,
-        'mu' : 10,
-        'N' : 11,
-        't0' : 12,
-        'Im0' : 13,
-        'lambda1' : 14 
-    }
+    keys = key_to_idx
     
     rkeys = {
         'gIR' : 0,
@@ -36,18 +21,7 @@ class SEIR:
         'gUR' : 7
     }
     
-    ykeys = {
-        'S' : 0,
-        'Im' : 1,
-        'Ip' : 2,
-        'Rm' : 3,
-        'RI' : 4,
-        'H' : 5,
-        'U' : 6,
-        'RH' : 7,
-        'D' : 8,
-        'DR' : 9
-    }
+    ykeys = ykeys
     
     def __init__(self, x):
         # x contains the fifteen input parameter

@@ -14,7 +14,7 @@ output_notebook(hide_banner=True)
 from ipywidgets import interact, IntSlider, Dropdown, FloatSlider
 
 # --------------------------- Q3) Morris ------------------------- # 
-def plot_morris(mu, sigma, names, verbose = False):
+def plot_morris(mu, sigma, names = 'default', verbose = False):
     if(names == 'default'):
         names = ['pa', 'pIH', 'pIU', 'pHD', 'pHU', 'pUD', 'NI', 'NH', 'NU', 'R0', 'mu', 'N', 't0', 'Im0', 'lambda1']
     
