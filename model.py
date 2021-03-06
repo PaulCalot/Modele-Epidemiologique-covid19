@@ -28,7 +28,7 @@ class SEIR:
         # order : pa, pIH, pIU, pHD, pHU, pUD, NI, NH, NU, R0, mu, N, t0, Im0, lambda1  # 15
         self.x = x
         # order : S, Im, Ip, Rm, RI, H, U, RH, D, DR # 10
-        self.y = np.array((self.S0, x[self.keys['Im0']], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+        self.y = np.array([self.S0, x[self.keys['Im0']], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         self.t = x[self.keys['t0']]
         
         self.rates = self.init_rates()
@@ -38,14 +38,12 @@ class SEIR:
                         self.rates[self.rkeys['gIU']])/self.S0
     
     def step(self, dt):
-        self.t += dt
         self.y += dt*self.derivative(self.y, self.t) # Euler explicit
-        
+        self.t += dt
+
     def derivative(self, y, t):
         der = np.zeros((11))
-        
-        time = t + self.x[self.keys['t0']]
-        tau = self.get_tau(time)
+        tau = self.get_tau(t)
     
         S, Im, Ip, Rm, RI, H, U, RH, D, DR = list(y)
         gIR, gIH, gIU, gHD, gHU, gHR, gUD, gUR = self.rates
