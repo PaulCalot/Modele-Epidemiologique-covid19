@@ -53,9 +53,9 @@ def draw_input_params(seed = None):
     NU = np.random.uniform(10,20)
     R0 = np.random.uniform(2.9,3.4)
     mu = np.random.uniform(0.01,0.08)
-    tmin, tmax = 0, 4*7+3 # 24/02/2020 = tmin = 0
-    Nmin = tmax
-    Nmax = Nmin + 3*7
+    tmin, tmax = 0,(datetime(year = 2020, month = 2, day = 24)-init_date).days # 25/01/2020 = tmin = 0 ; tmax = 24/02/2020
+    Nmin = tmax # = tmax
+    Nmax = (datetime(year = 2020, month = 3, day = 15)-init_date).days # 15/03
     N = np.random.randint(Nmin, Nmax+1)
     t0 = np.random.randint(tmin, tmax+1) # in days
     
