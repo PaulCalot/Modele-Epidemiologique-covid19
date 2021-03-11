@@ -4,6 +4,7 @@ from pprint import pprint
 from collections import OrderedDict
 
 from utils import delta_time, key_to_idx, ykeys
+
 class SEIR:
     
     S0 = 67e6 # size of french population
@@ -32,6 +33,7 @@ class SEIR:
         self.t = x[self.keys['t0']]
         
         self.rates = self.init_rates()
+        #print(self.rates)
         self.tau0 = x[self.keys['R0']]*(x[self.keys['lambda1']]+\
                         self.rates[self.rkeys['gIR']]+\
                         self.rates[self.rkeys['gIH']]+\
@@ -86,9 +88,21 @@ class SEIR:
     
     def get_tau(self, t):
         dtime = (t-self.x[self.keys['N']])
-        return self.tau0*np.exp(-self.x[self.keys['mu']]*\
+        return self.get_tau0(t)*np.exp(-self.x[self.keys['mu']]*\
                     max(dtime,0))
-        
+    
+    def get_tau0(self,t):
+        x=self.x
+        if(t>self.x[self.keys['N']]):
+            tau0 = x[self.keys['R0']]*(self.rates[self.rkeys['gIR']]+\
+                        self.rates[self.rkeys['gIH']]+\
+                        self.rates[self.rkeys['gIU']])/self.S0
+        else:
+            tau0 = x[self.keys['R0']]*(x[self.keys['lambda1']]+\
+                        self.rates[self.rkeys['gIR']]+\
+                        self.rates[self.rkeys['gIH']]+\
+                        self.rates[self.rkeys['gIU']])/self.S0
+        return tau0
     # --------------- print functions ------------------ #
     def __str__(self):
         dico_params = self.params_to_dict(self.keys, self.x)
