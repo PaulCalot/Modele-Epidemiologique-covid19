@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 from utils import delta_time, key_to_idx, ykeys
 
+# SEIR
 class SEIR:
     
     S0 = 67e6 # size of french population
@@ -39,10 +40,12 @@ class SEIR:
                         self.rates[self.rkeys['gIH']]+\
                         self.rates[self.rkeys['gIU']])/self.S0
     
+    # step
     def step(self, dt):
         self.y += dt*self.derivative(self.y, self.t) # Euler explicit
         self.t += dt
 
+    # derivative
     def derivative(self, y, t):
         der = np.zeros((11))
         tau = self.get_tau(t)
@@ -110,6 +113,7 @@ class SEIR:
         dico_system_state = self.params_to_dict(self.ykeys, self.y)
         return 'Model of type SEIR with : \n\t- input parameters : {} \n\t- Rates : {} \nt\t- State : {} \n\t - Current time {}'.format(dico_params, dico_rates, dico_system_state, self.t)
     
+    # prettyprint
     def prettyprint(self):
         dico_params = self.params_to_dict(self.keys, self.x)
         dico_rates = self.params_to_dict(self.rkeys, self.rates)

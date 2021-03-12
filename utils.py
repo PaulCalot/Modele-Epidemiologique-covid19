@@ -40,7 +40,8 @@ input_params = {
     'Im0' : [1., 100.],
     'lambda1' : [1e-4, 1e-3]
 }
-    
+
+# draw_input_params
 def draw_input_params(seed = None):
     np.random.seed(seed)
     pa = np.random.uniform(low = 0.4, high = 0.9)
