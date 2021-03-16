@@ -1,9 +1,12 @@
 import numpy as np
+from scipy.integrate import odeint
+
 #from datetime import timedelta # https://docs.python.org/3/library/datetime.html
 from pprint import pprint
 from collections import OrderedDict
 
 from utils import delta_time, key_to_idx, ykeys
+from utils import extract_int_value
 
 # SEIR
 class SEIR:
@@ -137,3 +140,49 @@ class SEIR:
 
 
     
+# functions used to quikcly get integer results from input_params (uses precedes)
+
+def f(input_params, step_in_day = 0.1, tend = 300.0, verbose = False):
+    model = SEIR(input_params)
+    
+    if(verbose):
+        model.prettyprint()
+        
+    fcn = model.get_fcn()
+    y_ini = model.get_state()
+
+    # in number of days
+    tini = input_params[key_to_idx['t0']]
+    tend = tini+tend # in days
+    number_of_steps = int((tend-tini)/step_in_day)
+    
+    t_simu = np.linspace(tini,tend,number_of_steps)
+    
+    rtol, atol = 1e-3, 1e-6 # default values
+    solution = odeint(func = fcn, t = t_simu, y0 = y_ini) 
+    
+    sol, period = extract_int_value(solution, step_in_day)
+
+    return sol,  period
+
+def f_manual(input_params, step_in_day = 0.1, tend = 300.0, verbose = False):
+    model = SEIR(input_params)
+    
+    if(verbose):
+        model.prettyprint()
+        
+    fcn = model.get_fcn()
+    y_ini = model.get_state()
+    
+    # in number of days
+    tini = input_params[key_to_idx['t0']]
+    tend = tini+tend # in days
+    number_of_steps = int((tend-tini)/step_in_day)
+    Y = np.zeros((number_of_steps, len(y_ini)))
+    for k in range(number_of_steps):
+        model.step(step_in_day)
+        Y[k,:] = model.get_state()[:]
+            
+    sol, period = extract_int_value(Y, step_in_day)
+
+    return sol, period

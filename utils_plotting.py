@@ -13,6 +13,47 @@ output_notebook(hide_banner=True)
 
 from ipywidgets import interact, IntSlider, Dropdown, FloatSlider
 
+# ---------------------------- Q2) MC ---------------------------- #
+
+def plot_hist(array, bins, name, law = None, name_law = '', savefig = None):
+    mean, std = np.mean(array), np.std(array)
+    m, M = np.min(array), np.max(array)
+    q10, q90 = np.quantile(array, q=0.1),np.quantile(array, q=0.9)
+    
+    dico = {
+        'Mean' : mean,
+        'Standard deviation' : std,
+        'Minimum' : m,
+        'Maximum' : M,
+        'Quantile 0.1':q10,
+        'Quantile 0.9':q90
+    }
+    
+    N = array.shape[0]
+    
+    fig, ax = plt.subplots(figsize = (15,10))
+
+    if(law!=None):
+        x = np.arange(m, M)
+        y = law(x, mean, std) # scale = 1/lambda = Esp(U)
+        ax.plot(x,y, label = name_law)
+        
+    ax.hist(array, bins = bins , density = True)
+    
+    ax.set_title('Law of {} ; {} draws.'.format(name, N), fontsize=12)
+    ax.set_xlabel(name, fontsize=10)
+    ax.set_ylabel('quantity', fontsize=10)
+    
+    for key, value in dico.items():
+        ax.plot([],[], '.', label = '{} : {}'.format(key, value), color = 'k')
+        
+    plt.legend(loc='upper left', fontsize='x-large', title_fontsize='x-small', ncol=1, bbox_to_anchor=(1.05, 1))
+
+    if(savefig!=None):
+        plt.savefig(savefig+'.png', dpi = 40)
+    else:
+        plt.show()
+        
 # --------------------------- Q3) Morris ------------------------- # 
 def plot_morris(mu, sigma, names = 'default', verbose = False):
     if(names == 'default'):
