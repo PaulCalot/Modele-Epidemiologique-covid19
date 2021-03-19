@@ -4,9 +4,10 @@ from scipy.integrate import odeint
 #from datetime import timedelta # https://docs.python.org/3/library/datetime.html
 from pprint import pprint
 from collections import OrderedDict
+from datetime import timedelta, datetime
 
-from utils import delta_time, key_to_idx, ykeys
-from utils import extract_int_value
+from utils import delta_time, key_to_idx, ykeys, init_date
+from utils import extract_int_value, fill_missing_values
 
 # SEIR
 class SEIR:
@@ -142,7 +143,7 @@ class SEIR:
     
 # functions used to quikcly get integer results from input_params (uses precedes)
 
-def f(input_params, step_in_day = 0.1, tend = 300.0, verbose = False):
+def f(input_params, tend = datetime(year = 2020, month = 5, day = 11), verbose = False):    
     model = SEIR(input_params)
     
     if(verbose):
@@ -152,37 +153,14 @@ def f(input_params, step_in_day = 0.1, tend = 300.0, verbose = False):
     y_ini = model.get_state()
 
     # in number of days
-    tini = input_params[key_to_idx['t0']]
-    tend = tini+tend # in days
-    number_of_steps = int((tend-tini)/step_in_day)
+    tini = int(input_params[key_to_idx['t0']])
+    init_date_simu = init_date+tini*timedelta(days = 1)
     
-    t_simu = np.linspace(tini,tend,number_of_steps)
+    t_simu = np.arange(tini, tini+(tend-init_date_simu).days+1)
     
     rtol, atol = 1e-3, 1e-6 # default values
     solution = odeint(func = fcn, t = t_simu, y0 = y_ini) 
     
-    sol, period = extract_int_value(solution, step_in_day)
-
-    return sol,  period
-
-def f_manual(input_params, step_in_day = 0.1, tend = 300.0, verbose = False):
-    model = SEIR(input_params)
-    
-    if(verbose):
-        model.prettyprint()
-        
-    fcn = model.get_fcn()
-    y_ini = model.get_state()
-    
-    # in number of days
-    tini = input_params[key_to_idx['t0']]
-    tend = tini+tend # in days
-    number_of_steps = int((tend-tini)/step_in_day)
-    Y = np.zeros((number_of_steps, len(y_ini)))
-    for k in range(number_of_steps):
-        model.step(step_in_day)
-        Y[k,:] = model.get_state()[:]
-            
-    sol, period = extract_int_value(Y, step_in_day)
-
-    return sol, period
+    # we will make so that simulations always start from the same initialization time
+    sol = fill_missing_values(solution, number_missing = tini, filling_value = 'first')
+    return sol

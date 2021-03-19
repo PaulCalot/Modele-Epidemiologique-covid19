@@ -134,7 +134,7 @@ def plot_sobol_time(S, St, names= 'default'):
         c1 = p.x(x='times', y='S', source=source, color=colors[k], line_width=1.5, alpha=1.0, muted_color=colors[k], muted_alpha=0.01)
         c2 = p.line(x='times', y='St', source=source, color=colors[k], line_width=1.5, alpha=1.0, muted_color=colors[k], muted_alpha=0.01)
 
-        p.xaxis[0].axis_label = 'parameters'
+        p.xaxis[0].axis_label = 'time (days)'
         p.yaxis[0].axis_label = 'Index value'
         
         legend_it.append((names[k], [c1,c2]))

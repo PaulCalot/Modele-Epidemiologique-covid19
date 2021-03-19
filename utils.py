@@ -117,7 +117,7 @@ plotting_names = {
     'DR' : 'Detected (DR)'
 }
 box_colors = {
-    'S' : 'yellow',
+    'S' : 'goldenrod',
     'Im' : 'purple',
     'Ip' : 'orange',
     'Rm' : 'olive',
@@ -147,11 +147,26 @@ def extract_int_value(solution, step_in_day):
     sol, period = (solution[::int(1/step_in_day),:], 1) if step_in_day < 1 else (solution, step_in_day) # extraction of integer day value
     return sol, period # period = 1, if we have a value for each day, if one value every two days, equals 2 etc.
 
-def get_max_load_intensive_care(solution, period):
+def fill_missing_values(arr, number_missing, filling_value = 'first'):
+    # arr shape : times x values
+    if(number_missing==0):
+        return arr
+    
+    if(filling_value=='first'):
+        filling_shape = tuple([number_missing]+list(arr[0].shape))
+        filling_arr = np.zeros(filling_shape)
+        filling_arr[:] = arr[0]
+    else:
+        filling_shape = tuple([number_missing]+list(filling_value.shape))
+        filling_arr = np.zeros(filling_shape)
+        filling_arr[:] = filling_value
+    return np.concatenate((filling_arr, arr))
+
+def get_max_load_intensive_care(solution):
     # order : S, Im, Ip, Rm, RI, H, U, RH, D, DR
     # we suppose that the first element is the 0th day.
     max_it = np.argmax(solution[:,ykeys['U']])
     max_U = solution[max_it,ykeys['U']]
-    max_time = max_it*period
-    return np.array([int(max_time), int(max_U)])
+    max_time = max_it
+    return np.array([int(max_time), int(max_U)]) # always relative to t0
     

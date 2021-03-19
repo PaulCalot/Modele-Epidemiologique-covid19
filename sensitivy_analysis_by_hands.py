@@ -10,7 +10,7 @@ def compute_finite_diff(samples, delta, fn, h):
     from utils import vectorize
     delta_vect = vectorize(delta) # delta*np.identity(nb_inputs) #
     arr = np.zeros((len(samples), nb_inputs, h))
-    df_x = [fn(*(f(sample))) for sample in samples]
+    df_x = [fn(f(sample)) for sample in samples]
     for r, sample in enumerate(samples): # loop of size R
         for idx, d in enumerate(delta_vect): # d = [0,...,0, delta_idx, 0, ..., 0], d_idx = delta_idx
             p = input_params[idx_to_keys[idx]]
@@ -18,7 +18,7 @@ def compute_finite_diff(samples, delta, fn, h):
             while(xdx[idx]<p[0] or xdx[idx]>p[1]):
                 d = 0.5*d
                 xdx = sample+d
-            df = (fn(*f(xdx))-df_x[idx])/d[idx]
+            df = (fn(f(xdx))-df_x[idx])/d[idx]
             arr[r, idx] = df
     return arr
 
@@ -51,8 +51,8 @@ def Sobol(fn, R = 100, method = 'lhs'):
         print("Method {} not recognized. \nChoices : 'lhs', 'MC'".format(method))
         return
     
-    fA = np.array([fn(*f(X)) for X in A])
-    fB = np.array([fn(*f(X)) for X in B])
+    fA = np.array([fn(f(X)) for X in A])
+    fB = np.array([fn(f(X)) for X in B])
 
     s = list(fA.shape)
     s[0] = nb_inputs
@@ -65,7 +65,7 @@ def Sobol(fn, R = 100, method = 'lhs'):
     for i in range(nb_inputs):
         Ci = np.copy(A)
         Ci[:,i] = B[:,i]
-        fCi = np.array([fn(*f(X)) for X in Ci])
+        fCi = np.array([fn(f(X)) for X in Ci])
         
         Vhat_i = np.mean(fB*(fCi-fA), axis = 0) 
         Vhat_mi = np.mean(fA*(fA-fCi), axis = 0)
