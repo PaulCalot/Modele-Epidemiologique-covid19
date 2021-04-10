@@ -1,29 +1,20 @@
 import numpy as np
+from scipy.integrate import odeint
+
 #from datetime import timedelta # https://docs.python.org/3/library/datetime.html
 from pprint import pprint
 from collections import OrderedDict
+from datetime import timedelta, datetime
 
+from utils import delta_time, key_to_idx, ykeys, init_date
+from utils import extract_int_value, fill_missing_values
+
+# SEIR
 class SEIR:
     
     S0 = 67e6 # size of french population
     
-    keys = {
-        'pa' : 0,
-        'pIH' : 1,
-        'pIU' : 2,
-        'pHD' : 3,
-        'pHU' : 4,
-        'pUD' : 5,
-        'NI' : 6,
-        'NH' : 7,
-        'NU' : 8,
-        'R0' : 9,
-        'mu' : 10,
-        'N' : 11,
-        't0' : 12,
-        'Im0' : 13,
-        'lambda1' : 14 
-    }
+    keys = key_to_idx
     
     rkeys = {
         'gIR' : 0,
@@ -36,42 +27,32 @@ class SEIR:
         'gUR' : 7
     }
     
-    ykeys = {
-        'S' : 0,
-        'Im' : 1,
-        'Ip' : 2,
-        'Rm' : 3,
-        'RI' : 4,
-        'H' : 5,
-        'U' : 6,
-        'RH' : 7,
-        'D' : 8,
-        'DR' : 9
-    }
+    ykeys = ykeys
     
     def __init__(self, x):
         # x contains the fifteen input parameter
         # order : pa, pIH, pIU, pHD, pHU, pUD, NI, NH, NU, R0, mu, N, t0, Im0, lambda1  # 15
         self.x = x
         # order : S, Im, Ip, Rm, RI, H, U, RH, D, DR # 10
-        self.y = np.array((self.S0, x[self.keys['Im0']], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+        self.y = np.array([self.S0, x[self.keys['Im0']], 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         self.t = x[self.keys['t0']]
         
         self.rates = self.init_rates()
+        #print(self.rates)
         self.tau0 = x[self.keys['R0']]*(x[self.keys['lambda1']]+\
                         self.rates[self.rkeys['gIR']]+\
                         self.rates[self.rkeys['gIH']]+\
                         self.rates[self.rkeys['gIU']])/self.S0
     
+    # step
     def step(self, dt):
+        self.y += dt*self.derivative(self.y, self.t) # Euler explicit
         self.t += dt
-        self.y += dt*self.derivative(self.y, self.t)
-        
+
+    # derivative
     def derivative(self, y, t):
         der = np.zeros((11))
-        
-        time = t + self.x[self.keys['t0']]
-        tau = self.get_tau(time)
+        tau = self.get_tau(t)
     
         S, Im, Ip, Rm, RI, H, U, RH, D, DR = list(y)
         gIR, gIH, gIU, gHD, gHU, gHR, gUD, gUR = self.rates
@@ -114,9 +95,21 @@ class SEIR:
     
     def get_tau(self, t):
         dtime = (t-self.x[self.keys['N']])
-        return self.tau0*np.exp(-self.x[self.keys['mu']]*\
+        return self.get_tau0(t)*np.exp(-self.x[self.keys['mu']]*\
                     max(dtime,0))
-        
+    
+    def get_tau0(self,t):
+        x=self.x
+        if(t>self.x[self.keys['N']]):
+            tau0 = x[self.keys['R0']]*(self.rates[self.rkeys['gIR']]+\
+                        self.rates[self.rkeys['gIH']]+\
+                        self.rates[self.rkeys['gIU']])/self.S0
+        else:
+            tau0 = x[self.keys['R0']]*(x[self.keys['lambda1']]+\
+                        self.rates[self.rkeys['gIR']]+\
+                        self.rates[self.rkeys['gIH']]+\
+                        self.rates[self.rkeys['gIU']])/self.S0
+        return tau0
     # --------------- print functions ------------------ #
     def __str__(self):
         dico_params = self.params_to_dict(self.keys, self.x)
@@ -124,6 +117,7 @@ class SEIR:
         dico_system_state = self.params_to_dict(self.ykeys, self.y)
         return 'Model of type SEIR with : \n\t- input parameters : {} \n\t- Rates : {} \nt\t- State : {} \n\t - Current time {}'.format(dico_params, dico_rates, dico_system_state, self.t)
     
+    # prettyprint
     def prettyprint(self):
         dico_params = self.params_to_dict(self.keys, self.x)
         dico_rates = self.params_to_dict(self.rkeys, self.rates)
@@ -147,3 +141,26 @@ class SEIR:
 
 
     
+# functions used to quikcly get integer results from input_params (uses precedes)
+
+def f(input_params, tend = datetime(year = 2020, month = 5, day = 11), verbose = False):    
+    model = SEIR(input_params)
+    
+    if(verbose):
+        model.prettyprint()
+        
+    fcn = model.get_fcn()
+    y_ini = model.get_state()
+
+    # in number of days
+    tini = int(input_params[key_to_idx['t0']])
+    init_date_simu = init_date+tini*timedelta(days = 1)
+    
+    t_simu = np.arange(tini, tini+(tend-init_date_simu).days+1)
+    
+    rtol, atol = 1e-3, 1e-6 # default values
+    solution = odeint(func = fcn, t = t_simu, y0 = y_ini) 
+    
+    # we will make so that simulations always start from the same initialization time
+    sol = fill_missing_values(solution, number_missing = tini, filling_value = 'first')
+    return sol
